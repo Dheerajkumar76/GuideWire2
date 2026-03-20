@@ -1,0 +1,57 @@
+/* Custom css overrides */
+body {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Dark mode map adjustments for Leaflet */
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+#map {
+    background: #000;
+}
+
+/* Glow effects */
+.glow-text {
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+}
+
+.glow-box {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+.animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

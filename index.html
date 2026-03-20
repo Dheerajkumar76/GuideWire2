@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoadWatch - Authority Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        cardBg: '#1e293b',
+                        neonBlue: '#38bdf8',
+                        neonRed: '#ef4444',
+                        neonGreen: '#22c55e',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS (Mapbox alternative) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-darkBg text-slate-200 font-sans antialiased overflow-hidden h-screen flex">
+
+    <!-- Sidebar -->
+    <nav class="w-64 bg-cardBg border-r border-slate-700 flex flex-col justify-between hidden md:flex z-50">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-neonBlue flex items-center gap-2 mb-10 tracking-wider">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7">
+                    </path>
+                </svg>
+                ROADWATCH
+            </h1>
+            <ul class="space-y-4">
+                <li>
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard"
+                        class="w-full text-left px-4 py-3 rounded-lg bg-slate-800 text-neonBlue font-medium transition-all hover:bg-slate-700 flex items-center gap-3 shadow-[0_0_10px_rgba(56,189,248,0.2)]">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                            </path>
+                        </svg>
+                        Authority Dash
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('claim')" id="tab-claim"
+                        class="w-full text-left px-4 py-3 rounded-lg text-slate-400 font-medium transition-all hover:bg-slate-800 hover:text-slate-200 flex items-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Claim Verification
+                    </button>
+                </li>
+                <li>
+                    <button onclick="switchTab('mobile')" id="tab-mobile"
+                        class="w-full text-left px-4 py-3 rounded-lg text-slate-400 font-medium transition-all hover:bg-slate-800 hover:text-slate-200 flex items-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        Partner App (PWA)
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Liquidity Monitor Widget -->
+            <div class="p-4 mt-8 bg-red-500/10 border border-red-500/30 rounded-xl">
+                <p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Liquidity Pool</p>
+                <p class="text-xl font-mono font-bold text-red-500">$442,102.00</p>
+                <p class="text-[10px] text-red-400 animate-pulse mt-1">⚠️ 62% DRAIN DETECTED</p>
+            </div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center border-2 border-neonBlue">
+                    <span class="font-bold text-sm">AD</span>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold">Admin Official</h4>
+                    <p class="text-xs text-slate-400">System Verified</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 relative w-full h-full">
+
+        <!-- 1. Landing Page: Dashboard -->
+        <section id="view-dashboard"
+            class="w-full h-full flex flex-col absolute inset-0 transition-opacity duration-300">
+            <header
+                class="bg-cardBg/80 backdrop-blur-md border-b border-slate-700 p-4 flex justify-between items-center z-10">
+                <h2 class="text-xl font-semibold tracking-wide">Live Incident Map</h2>
+                <div class="flex gap-4">
+                    <div
+                        class="flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-3 py-1.5 rounded-full text-sm text-red-400">
+                        <span class="relative flex h-3 w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                        3 Active High-Risk Zones
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 flex relative">
+                <!-- Map Container -->
+                <div id="map" class="flex-1 bg-slate-900 z-0"></div>
+
+                <!-- Predictive Heatmap Overlay Toggle -->
+                <div
+                    class="absolute bottom-6 left-6 z-10 bg-cardBg/90 backdrop-blur border border-slate-700 p-4 rounded-xl shadow-2xl">
+                    <h3 class="font-semibold text-sm mb-3">Map Layers</h3>
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <div class="relative">
+                            <input type="checkbox" id="heatmap-toggle" class="sr-only" checked
+                                onchange="toggleHeatmap()">
+                            <div class="block bg-slate-600 w-10 h-6 rounded-full"></div>
+                            <div
+                                class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform translate-x-4 bg-neonBlue">
+                            </div>
+                        </div>
+                        <span class="text-sm text-slate-300">Predictive Heatmap</span>
+                    </label>
+                </div>
+
+                <!-- Real-time Alerts Feed -->
+                <aside class="w-80 bg-cardBg/95 backdrop-blur-xl border-l border-slate-700 flex flex-col z-10">
+                    <div class="p-4 border-b border-slate-700">
+                        <h3 class="font-semibold flex items-center gap-2 text-neonBlue">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                                </path>
+                            </svg>
+                            Incoming Claims
+                        </h3>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="alerts-feed">
+                        <!-- Feed populated by JS -->
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- 2. Claim Verification Page -->
+        <section id="view-claim"
+            class="w-full h-full absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-300 overflow-y-auto bg-darkBg pb-10">
+            <div class="max-w-6xl mx-auto p-6 mt-4">
+                <header class="mb-8 flex justify-between items-end">
+                    <div>
+                        <h2 id="claim-id-display"
+                            class="text-3xl font-bold bg-gradient-to-r from-neonBlue to-purple-500 bg-clip-text text-transparent">
+                            Claim #RW-88291</h2>
+                        <p class="text-slate-400 mt-2">Evaluation of reported market crash / liquidity protection event.
+                        </p>
+                    </div>
+                    <div id="claim-status-badge" class="bg-cardBg px-4 py-2 rounded-lg border border-slate-700 text-sm">
+                        <span class="text-slate-400">Status:</span> <span
+                            class="text-yellow-400 font-semibold ml-2">Pending Adjudication</span>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- User Telemetry Card -->
+                    <div class="col-span-1 lg:col-span-2 space-y-6">
+                        <div class="bg-cardBg rounded-xl border border-slate-700 p-6 shadow-lg shadow-black/20">
+                            <h3 class="text-lg font-semibold mb-4 border-b border-slate-700 pb-2">User Telemetry</h3>
+
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                                    <p class="text-sm text-slate-400 mb-1">GPS Status</p>
+                                    <p class="font-semibold text-white flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-neonBlue" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                            </path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                        Reported: MG Road, Bengaluru
+                                    </p>
+                                </div>
+                                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                                    <p class="text-sm text-slate-400 mb-1">Time of Incident</p>
+                                    <p class="font-semibold text-white">14:22 IST - Oct 12</p>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-slate-400 mb-2">Inertial Pulse (Accelerometer/Gyroscope signature)
+                            </p>
+                            <div
+                                class="h-48 bg-slate-900 rounded-lg p-2 border border-slate-700 relative overflow-hidden">
+                                <!-- Chart.js canvas -->
+                                <canvas id="imuChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Visual Proof Modal / Component -->
+                        <div class="bg-cardBg rounded-xl border border-slate-700 p-6 shadow-lg shadow-black/20">
+                            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+                                <h3 class="text-lg font-semibold">Visual Proof (Ground Truth)</h3>
+                                <span
+                                    class="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded border border-purple-500/30">YOLOv8
+                                    Vision Model</span>
+                            </div>
+
+                            <div id="visual-proof-container"
+                                class="relative rounded-lg overflow-hidden border border-slate-700 group bg-black flex justify-center items-center h-[350px]">
+                                <img id="visual-proof-img"
+                                    src="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                                    alt="Street View"
+                                    class="w-full h-full object-cover opacity-80 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500">
+
+                                <!-- Bounding Boxes -->
+                                <div id="bbox-vehicle"
+                                    class="absolute top-[20%] left-[30%] w-[150px] h-[100px] border-2 border-neonBlue bg-neonBlue/10 animate-pulse">
+                                    <span
+                                        class="absolute -top-6 left-[-2px] bg-neonBlue text-black text-xs font-bold px-2 py-1">Vehicle
+                                        98%</span>
+                                </div>
+
+                                <div id="bbox-flood"
+                                    class="absolute bottom-[10%] left-[10%] w-[300px] h-[150px] border-2 border-neonGreen bg-neonGreen/10">
+                                    <span
+                                        class="absolute -top-6 left-[-2px] bg-neonGreen text-black text-xs font-bold px-2 py-1">Flood
+                                        92%</span>
+                                </div>
+
+                                <div id="bbox-rain"
+                                    class="absolute inset-0 border-2 border-red-500/20 bg-red-500/10 mix-blend-overlay pointer-events-none">
+                                </div>
+                                <span id="label-rain"
+                                    class="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-2 py-1 rotate-3 shadow-lg">Heavy
+                                    Rain Detected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right sidebar in Claim page -->
+                    <div class="col-span-1 space-y-6">
+
+                        <!-- Trust Score -->
+                        <div
+                            class="bg-cardBg rounded-xl border border-slate-700 p-6 shadow-lg shadow-black/20 flex flex-col items-center justify-center">
+                            <h3 class="w-full text-lg font-semibold mb-4 border-b border-slate-700 pb-2 text-left">Trust
+                                Score</h3>
+                            <div class="relative w-40 h-40 mt-4 mb-2">
+                                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                    <!-- Background Circle -->
+                                    <path class="text-slate-800"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="currentColor" stroke-width="3" />
+                                    <!-- Progress Circle -->
+                                    <path id="trust-progress" class="text-red-500 transition-all duration-1000 ease-out"
+                                        stroke-dasharray="35, 100"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="currentColor" stroke-width="3" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="trust-score-text"
+                                        class="text-4xl font-bold font-mono text-white">35%</span>
+                                </div>
+                            </div>
+                            <p id="trust-score-label" class="text-center text-red-400 text-sm font-medium">Critical
+                                Threshold Not Met</p>
+                        </div>
+
+                        <!-- Spoof Detector Console -->
+                        <div class="bg-cardBg rounded-xl border border-slate-700 p-6 shadow-lg shadow-black/20">
+                            <h3
+                                class="text-lg font-semibold mb-4 border-b border-slate-700 pb-2 flex justify-between items-center">
+                                Spoof Detector
+                                <span id="spoof-alert-badge"
+                                    class="bg-red-500/20 text-red-500 text-xs px-2 py-1 rounded font-bold border border-red-500/50">ALERT</span>
+                            </h3>
+
+                            <ul id="spoof-log-list" class="space-y-4">
+                                <li class="flex items-start gap-3 bg-red-500/10 p-3 rounded border border-red-500/20">
+                                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-semibold text-red-400">Synthetic Movement Detected</p>
+                                        <p class="text-xs text-slate-400 mt-1">IMU patterns are anomalously linear.
+                                            Potential GPS spoofing.</p>
+                                    </div>
+                                </li>
+                                <li
+                                    class="flex items-start gap-3 bg-green-500/5 p-3 rounded border border-green-500/20">
+                                    <svg class="w-5 h-5 text-green-500 shrink-0 mt-0.5" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-semibold text-green-400">Network Match</p>
+                                        <p class="text-xs text-slate-400 mt-1">Cellular Tower ID matches reported GPS
+                                            vicinity.</p>
+                                    </div>
+                                </li>
+                                <li
+                                    class="flex items-start gap-3 bg-yellow-500/5 p-3 rounded border border-yellow-500/20">
+                                    <svg class="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                        </path>
+                                    </svg>
+                                    <div>
+                                        <p class="text-sm font-semibold text-yellow-400">Visual Mismatch</p>
+                                        <p class="text-xs text-slate-400 mt-1">Submitted image metadata suggests origin
+                                            outside time window.</p>
+                                    </div>
+                                </li>
+                            </ul>
+
+                            <div class="mt-6 flex justify-center" id="spoof-final-verdict">
+                                <span
+                                    class="bg-red-500 px-4 py-2 rounded font-bold tracking-wider shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-400">SPOOF
+                                    DETECTED</span>
+                            </div>
+
+                            <div class="mt-4" id="spoof-action-btn">
+                                <button
+                                    class="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded border border-slate-600 transition-colors">
+                                    Deny Payout
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Delivery Partner Mobile View (PWA) -->
+        <section id="view-mobile"
+            class="w-full h-full absolute inset-0 opacity-0 pointer-events-none transition-opacity duration-300 flex items-center justify-center bg-darkBg/95 backdrop-blur">
+            <!-- Mobile Frame -->
+            <div
+                class="w-[375px] h-[812px] bg-black rounded-[40px] border-8 border-slate-800 overflow-hidden relative shadow-2xl shadow-neonBlue/10 flex flex-col">
+                <!-- Notch -->
+                <div class="absolute top-0 inset-x-0 h-6 bg-slate-800 rounded-b-xl w-40 mx-auto z-50"></div>
+
+                <!-- App Header -->
+                <div class="bg-slate-900 pt-10 pb-4 px-6 border-b border-slate-800">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-xl font-bold text-white">Partner App</h2>
+                        <div class="flex gap-2 items-center">
+                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            <span class="text-xs text-slate-400">Online</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- App Body (Normal State) -->
+                <div id="mobile-normal"
+                    class="flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center relative transition-opacity duration-300">
+
+                    <div class="text-center mb-10">
+                        <div
+                            class="w-32 h-32 mx-auto rounded-full border-4 border-slate-800 flex items-center justify-center mb-4 bg-slate-900 overflow-hidden relative">
+                            <svg class="w-16 h-16 text-slate-600 absolute" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-slate-400 text-sm">Location Active</p>
+                    </div>
+
+                    <!-- Syncing Animation -->
+                    <div
+                        class="flex items-center gap-2 mb-8 bg-slate-900 px-4 py-2 rounded-full border border-slate-800">
+                        <svg class="w-4 h-4 text-neonBlue animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                        <span class="text-xs font-mono text-neonBlue">Syncing Sensor Data...</span>
+                    </div>
+
+                    <!-- Emergency Button -->
+                    <button onclick="triggerVerification()"
+                        class="mt-auto w-full py-5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-2xl font-bold text-white text-lg tracking-wide shadow-[0_10px_20px_rgba(239,68,68,0.3)] transform transition-transform active:scale-95 border border-red-400/50 flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        Report Incident
+                    </button>
+
+                </div>
+
+                <!-- Camera UI Overlay (Hidden by default) -->
+                <div id="camera-ui"
+                    class="absolute inset-0 bg-black z-20 flex flex-col opacity-0 pointer-events-none transition-opacity duration-300">
+                    <div class="relative flex-1 bg-slate-800 flex items-center justify-center overflow-hidden">
+                        <!-- Simulated Camera View -->
+                        <img src="https://images.unsplash.com/photo-1534224039826-c7a0c07cb581?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80"
+                            class="absolute inset-0 w-full h-full object-cover opacity-60">
+
+                        <div
+                            class="absolute inset-0 border-4 border-dashed border-red-500 m-8 animate-pulse rounded-lg pointer-events-none">
+                        </div>
+
+                        <div
+                            class="absolute top-16 inset-x-6 bg-black/80 backdrop-blur border border-red-500/50 p-4 rounded-xl text-center">
+                            <p class="text-red-400 font-bold mb-1 flex justify-center items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                    </path>
+                                </svg>
+                                Low Trust Score Detected
+                            </p>
+                            <p class="text-xs text-white">Please capture a 3-second video of the road conditions for
+                                visual verification.</p>
+                        </div>
+                    </div>
+
+                    <div class="h-32 bg-black flex items-center justify-center relative">
+                        <button
+                            class="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center relative cursor-pointer"
+                            onclick="closeVerification()">
+                            <div class="w-12 h-12 bg-red-500 rounded-full animate-pulse"></div>
+                        </button>
+                        <button class="absolute top-1/2 -translate-y-1/2 left-6 text-white text-sm"
+                            onclick="closeVerification()">Cancel</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div
+                class="absolute right-10 top-1/2 -translate-y-1/2 w-80 bg-cardBg/90 backdrop-blur border border-slate-700 p-6 rounded-xl hidden xl:block">
+                <h3
+                    class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-4">
+                    The PWA Demo</h3>
+                <p class="text-slate-300 text-sm mb-4">
+                    This frame simulates the worker's experience on the ground.
+                </p>
+                <ul class="text-sm space-y-3 text-slate-400">
+                    <li><strong class="text-white">1. Background Sync:</strong> Continually fuses IMU/GPS data.</li>
+                    <li><strong class="text-white">2. Liquidity Event:</strong> Worker initiates a claim via the big red
+                        button.</li>
+                    <li><strong class="text-red-400">3. Visual Trigger (Demo):</strong> If internal trust score dips
+                        below 95%, the app forces Camera UX for Ground-Truth processing via YOLOv8.</li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
